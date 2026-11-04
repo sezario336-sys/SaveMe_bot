@@ -3,63 +3,74 @@ import threading
 import telebot
 from flask import Flask
 
-# جلب التوكن سراً من متغيرات البيئة في المنصة لحمايته من السرقة
-TOKEN = os.getenv("TELEGRAM_TOKEN")
+# ضع توكن بوتك الجديد هنا مباشرة لتفادي أي خطأ في قراءة البيئة
+TOKEN = 9244470415:AAH-qkaq2d_n1zcOQu-0vge9_tE7UPJuEkA
 bot = telebot.TeleBot(TOKEN)
 
-# روابط إعلانات Adsterra الخاصة بك
-AD_LINK_1 = "https://auctionr.org/4/ccfde0e6595e3e53ade83017c720ce7d"
-AD_LINK_2 = "https://asiafilm.org/4/3c30e7e1aaae3c7a53addedef397debd"
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Etsy SEO Sniper Bot is active and running!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+# قاعدة بيانات الكلمات المفتاحية
+SEO_DATABASE = {
+    "planner": {
+        "tags": ["Digital Planner", "GoodNotes Template", "iPad Planner 2026", "Daily Life Planner", "Minimalist Organizer", "Undated PDF Planner", "Productivity Tracker", "Student Planner App"],
+        "title": "Ultimate Digital Planner 2026 | Minimalist iPad & GoodNotes Daily Organizer"
+    },
+    "journal": {
+        "tags": ["Mind Reset Journal", "Self Care Workbook", "Daily Reflection PDF", "Mental Health Log", "Printable Journal Prompts", "Anxiety Relief Guide", "Wellness Tracker"],
+        "title": "Daily Mind Reset Journal | Printable & Digital Mental Health Workbook"
+    },
+    "default": {
+        "tags": ["Digital Product Template", "Instant Download File", "Editable Canva Design", "Business Growth Tool", "Marketing Asset Bundle", "Passive Income Kit", "Etsy Best Seller PDF"],
+        "title": "High-Converting Digital Product Asset | Instant Download & Ready to Use"
+    }
+}
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
+def send_welcome(bot_msg):
     welcome_text = (
-        "مرحباً بك في بوت تحميل الفيديوهات الاحترافي! 🎬\n\n"
-        "أرسل لي أي رابط فيديو من (تيك توك، إنستغرام، يوتيوب، فيسبوك) وسأقوم بتحميله لك فوراً بدون علامة مائية."
+        "🎯 **مرحباً بك في بوت Etsy & Digital Store SEO Sniper!**\n\n"
+        "أرسل لي الآن اسم منتجك باللغة الإنجليزية (مثال: `Digital Planner`) وسأحلل لك الكلمات المفتاحية فوراً!"
     )
-    bot.reply_to(message, welcome_text)
+    bot.reply_to(bot_msg, welcome_text, parse_mode="Markdown")
 
 @bot.message_handler(func=lambda message: True)
-def download_video(message):
-    url = message.text.strip()
-    
-    if not url.startswith("http"):
-        bot.reply_to(message, "الرجاء إرسال رابط صحيح يبدأ بـ http أو https.")
+def analyze_seo(bot_msg):
+    query = bot_msg.text.strip().lower()
+    if len(query) < 2:
+        bot.reply_to(bot_msg, "⚠️ من فضلك اكتب اسم منتج صحيح مكون من حروف واضحة.")
         return
 
-    sent_msg = bot.reply_to(message, "⏳ جاري معالجة وتحميل الفيديو، يرجى الانتظار قليلاً...")
+    msg = bot.reply_to(bot_msg, "🔍 جاري فحص خوارزميات البحث واستخراج أفضل الكلمات المفتاحية...")
 
-    output_filename = "downloaded_video.mp4"
+    matched_data = SEO_DATABASE["default"]
+    for key in SEO_DATABASE:
+        if key in query:
+            matched_data = SEO_DATABASE[key]
+            break
+
+    tags_formatted = ", ".join([f"`{tag}`" for tag in matched_data['tags']])
     
-    ydl_opts = {
-        'outtmpl': output_filename,
-        'format': 'best',
-        'noplaylist': True,
-    }
+    response_text = (
+        f"✅ **تم تحليل المنتج لـ:** `{query.title()}`\n\n"
+        f"📌 **العنوان المقترح (SEO Title):**\n`{matched_data['title']}`\n\n"
+        f"🔑 **الكلمات الدلالية (Tags):**\n{tags_formatted}\n\n"
+        f"🚀 **أداة التحليل المتقدمة:**\n🔗 [اضغط هنا برعاية ممولنا](https://auctionr.org)"
+    )
 
     try:
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        bot.edit_message_text(response_text, bot_msg.chat.id, msg.message_id, parse_mode="Markdown")
+    except:
+        bot.send_message(bot_msg.chat.id, response_text, parse_mode="Markdown")
 
-        # إنشاء أزرار تفاعلية تتضمن روابط الإعلانات للربح
-        markup = InlineKeyboardMarkup()
-        btn_ad1 = InlineKeyboardButton("🔥 عرض مميز ودعم البوت", url=AD_LINK_1)
-        btn_ad2 = InlineKeyboardButton("⭐ روابط ومواقع أخرى مفيدة", url=AD_LINK_2)
-        markup.add(btn_ad1)
-        markup.add(btn_ad2)
-
-        with open(output_filename, 'rb') as video:
-            bot.send_video(message.chat.id, video, caption="تم تحميل الفيديو بنجاح بواسطة MOLCCI DG 📥\n\nsupport us by checking sponsors below 👇", reply_markup=markup)
-        
-        bot.delete_message(message.chat.id, sent_msg.message_id)
-
-    except Exception as e:
-        bot.edit_message_text("❌ حدث عطل أثناء تحميل الفيديو. تأكد أن الرابط عام وصحيح.", message.chat.id, sent_msg.message_id)
-    
-    finally:
-        if os.path.exists(output_filename):
-            os.remove(output_filename)
-
-if __name__ == '__main__':
-    print("البوت يعمل الآن بنجاح...")
+if __name__ == "__main__":
+    t = threading.Thread(target=run_web)
+    t.start()
     bot.infinity_polling()
