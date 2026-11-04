@@ -1,10 +1,10 @@
 import os
+import threading
 import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from yt_dlp import YoutubeDL
+from flask import Flask
 
-# ضع هنا التوكن الخاص ببوتك الذي أرسلته لي
-TOKEN = "9244470415:AAFMRHsP6LL9mjsgOVN07rAetcG9_V5snFg"
+# جلب التوكن سراً من متغيرات البيئة في المنصة لحمايته من السرقة
+TOKEN = os.getenv("TELEGRAM_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
 # روابط إعلانات Adsterra الخاصة بك
