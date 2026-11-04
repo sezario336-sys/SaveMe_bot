@@ -4,7 +4,7 @@ import telebot
 from flask import Flask
 
 # جلب التوكن سراً من متغيرات البيئة في المنصة لحمايته من السرقة
-TOKEN = os.getenv("TELEGRAM_TOKEN")
+TOKEN = 9244470415:AAGsheDp7N-WoVtMGeRRKEI5FbsAGP8U1sU
 bot = telebot.TeleBot(TOKEN)
 
 # روابط إعلانات Adsterra الخاصة بك
